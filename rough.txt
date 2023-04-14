@@ -1,0 +1,78 @@
+# Set the base image to Node.js v14.x
+FROM node:14
+
+# Install Nginx
+RUN apt-get update && apt-get install -y nginx
+
+# Install MongoDB
+RUN apt-get update && apt-get install -y mongodb
+
+# Install SSH server
+RUN apt-get update && apt-get install -y openssh-server
+
+# Copy the application code into the container
+COPY . /app
+
+# Change the working directory to the application directory
+WORKDIR /app
+
+# Install dependencies
+RUN npm install
+
+# Expose ports
+EXPOSE 80
+EXPOSE 443
+EXPOSE 22
+
+# Start Nginx and MongoDB services
+CMD service nginx start && service mongodb start && /usr/sbin/sshd -D
+
+
+
+
+----------------------------------------------------------------------------------
+
+
+version: '3'
+services:
+  app:
+    build: .
+    volumes:
+      - .:/app
+    ports:
+      - '80:80'
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/mydb
+    depends_on:
+      - mongo
+      - nginx
+    command: >
+      /bin/sh -c "service ssh start;
+                  service nginx start;
+                  mongod --fork --logpath /var/log/mongodb.log;
+                  node app.js"
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - '80:80'
+    depends_on:
+      - app
+  mongo:
+    image: mongo:latest
+    volumes:
+      - ./data:/data/db
+    ports:
+      - '27017:27017'
+    environment:
+      - MONGO_INITDB_DATABASE=mydb
+  ssh:
+    build: .
+    ports:
+      - '22:22'
+    volumes:
+      - .:/app
+    depends_on:
+      - app
+    command: /usr/sbin/sshd -D -e

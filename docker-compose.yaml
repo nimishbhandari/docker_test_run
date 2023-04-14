@@ -1,0 +1,73 @@
+version: "3"
+services:
+  frontend:
+    build:
+      context: "./frontend"
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    container_name: frontend
+    networks:
+      - mern-stack-network
+    volumes:
+      - ./frontend:/app
+  backend:
+    build:
+      context: "./backend"
+      dockerfile: Dockerfile
+    ports:
+      - 5000:5000
+    container_name: backend
+    networks:
+      - mern-stack-network
+    volumes:
+      - ./backend:/app
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    volumes:
+      - ./data:/data/db
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=mydb
+    networks:
+      - mern-stack-network
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - mern-stack-network
+  openssh-server:
+    image: lscr.io/linuxserver/openssh-server:latest
+    container_name: openssh-server
+    # hostname: openssh-server #optional
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      # - PUBLIC_KEY=yourpublickey #optional
+      # - PUBLIC_KEY_FILE=/path/to/file #optional
+      # - PUBLIC_KEY_DIR=/path/to/directory/containing/_only_/pubkeys #optional
+      # - PUBLIC_KEY_URL=https://github.com/username.keys #optional
+      # - SUDO_ACCESS=false #optional
+      # - PASSWORD_ACCESS=false #optional
+      # - USER_PASSWORD=password #optional
+      # - USER_PASSWORD_FILE=/path/to/file #optional
+      # - USER_NAME=linuxserver.io #optional
+    volumes:
+      - /path/to/appdata/config:/config
+    ports:
+      - 2222:2222
+    restart: unless-stopped
+    networks:
+      - mern-stack-network
+networks:
+  mern-stack-network:
+volumes:
+  mongoData:

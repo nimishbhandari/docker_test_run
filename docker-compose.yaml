@@ -10,7 +10,7 @@ services:
     networks:
       - mern-stack-network
     volumes:
-      - ./frontend:/app
+      - ./src:/usr/frontend/
   backend:
     build:
       context: "./backend"
@@ -21,7 +21,7 @@ services:
     networks:
       - mern-stack-network
     volumes:
-      - ./backend:/app
+      - ./src:/usr/backend/
   mongo:
     image: mongo:latest
     container_name: mongo
